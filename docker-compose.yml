@@ -22,7 +22,7 @@ services:
             - ./src/.bash_profile:/tmp/.bash_profile
             - ./src/App.java:/tmp/App.java
             - ./src/pom.xml:/tmp/pom.xml
-            - ./src/compileme:/tmp/compileme
+            - ./src/dothis:/tmp/dothis
         command: tail -f /dev/null
 
 ################################################
