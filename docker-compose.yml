@@ -1,0 +1,199 @@
+version: '2'
+
+################################################
+# adjacents docker-compose file for cassandra + java
+# updated January 2021
+# author: Valerie Parham-Thompson valerie.parham.thompson@gmail.com
+
+services:
+
+################################################
+# application server
+    app:
+        container_name: app
+        build:
+          context: .
+          dockerfile: ./src/opscassie-Dockerfile
+        hostname: app
+        networks:
+          myring:
+            ipv4_address: 172.16.238.10
+        volumes:
+            - ./src/.bash_profile:/tmp/.bash_profile
+            - ./src/App.java:/tmp/App.java
+            - ./src/pom.xml:/tmp/pom.xml
+            - ./src/compileme:/tmp/compileme
+        command: tail -f /dev/null
+
+################################################
+# servers to run a Cassandra cluster on
+# the "CASSANDRA*" variables will get pulled in via docker-entrypoint.sh
+
+    dc1c1:
+        container_name: dc1c1
+        build:
+          context: .
+          dockerfile: ./src/cassie-Dockerfile
+        hostname: dc1c1
+        networks: 
+            - myring
+        volumes:
+            - ./n1data:/var/lib/cassandra
+            - ./configuration/cassandra-env.sh:/etc/cassandra/cassandra-env.sh
+        ports:
+          - "127.0.0.1:7401:7400"
+        environment:
+            - CASSANDRA_SEEDS=dc1c1,dc1c2,dc1c2,dc1c3
+            - CASSANDRA_CLUSTER_NAME=Dev_Cluster
+            - CASSANDRA_ENDPOINT_SNITCH=GossipingPropertyFileSnitch
+            - CASSANDRA_DC=DC1
+            - CASSANDRA_RACK=RAC1
+        ulimits:
+            memlock: -1
+            nproc: 32768
+            nofile: 100000
+        command: bash -c 'sleep 10;  /docker-entrypoint.sh cassandra -f'
+
+    dc1c2:
+        container_name: dc1c2
+        build:
+          context: .
+          dockerfile: ./src/cassie-Dockerfile
+        hostname: dc1c2
+        networks:
+            - myring
+        volumes:
+            - ./n2data:/var/lib/cassandra
+            - ./configuration/cassandra-env.sh:/etc/cassandra/cassandra-env.sh
+        ports:
+          - "127.0.0.1:7402:7400"
+        environment:
+            - CASSANDRA_SEEDS=dc1c1,dc1c2,dc1c2,dc1c3
+            - CASSANDRA_CLUSTER_NAME=Dev_Cluster
+            - CASSANDRA_ENDPOINT_SNITCH=GossipingPropertyFileSnitch
+            - CASSANDRA_DC=DC1
+            - CASSANDRA_RACK=RAC2
+        depends_on:
+              - dc1c1
+        ulimits:
+            memlock: -1
+            nproc: 32768
+            nofile: 100000
+        command: bash -c 'sleep 10;  /docker-entrypoint.sh cassandra -f'
+
+    dc1c3:
+        container_name: dc1c3
+        build:
+          context: .
+          dockerfile: ./src/cassie-Dockerfile
+        hostname: dc1c3
+        networks: 
+            - myring
+        volumes:
+            - ./n3data:/var/lib/cassandra
+            - ./configuration/cassandra-env.sh:/etc/cassandra/cassandra-env.sh
+        ports:
+          - "127.0.0.1:7403:7400"
+        environment:
+            - CASSANDRA_SEEDS=dc1c1,dc1c2,dc1c2,dc1c3
+            - CASSANDRA_CLUSTER_NAME=Dev_Cluster
+            - CASSANDRA_ENDPOINT_SNITCH=GossipingPropertyFileSnitch
+            - CASSANDRA_DC=DC1
+            - CASSANDRA_RACK=RAC3
+        depends_on:
+              - dc1c1
+        ulimits:
+            memlock: -1
+            nproc: 32768
+            nofile: 100000
+        command: bash -c 'sleep 10;  /docker-entrypoint.sh cassandra -f'
+
+    dc2c1:
+        container_name: dc2c1
+        build:
+          context: .
+          dockerfile: ./src/cassie-Dockerfile
+        hostname: dc2c1
+        networks: 
+            - myring
+        volumes:
+            - ./n4data:/var/lib/cassandra
+            - ./configuration/cassandra-env.sh:/etc/cassandra/cassandra-env.sh
+        ports:
+          - "127.0.0.1:7404:7400"
+        environment:
+            - CASSANDRA_SEEDS=dc2c1,dc2c2,dc1c2,dc1c3
+            - CASSANDRA_CLUSTER_NAME=Dev_Cluster
+            - CASSANDRA_ENDPOINT_SNITCH=GossipingPropertyFileSnitch
+            - CASSANDRA_DC=DC2
+            - CASSANDRA_RACK=RAC1
+        ulimits:
+            memlock: -1
+            nproc: 32768
+            nofile: 100000
+        command: bash -c 'sleep 10;  /docker-entrypoint.sh cassandra -f'
+
+    dc2c2:
+        container_name: dc2c2
+        build:
+          context: .
+          dockerfile: ./src/cassie-Dockerfile
+        hostname: dc2c2
+        networks:
+            - myring
+        volumes:
+            - ./n5data:/var/lib/cassandra
+            - ./configuration/cassandra-env.sh:/etc/cassandra/cassandra-env.sh
+        ports:
+          - "127.0.0.1:7405:7400"
+        environment:
+            - CASSANDRA_SEEDS=dc2c1,dc2c2,dc1c2,dc1c3
+            - CASSANDRA_CLUSTER_NAME=Dev_Cluster
+            - CASSANDRA_ENDPOINT_SNITCH=GossipingPropertyFileSnitch
+            - CASSANDRA_DC=DC2
+            - CASSANDRA_RACK=RAC2
+        depends_on:
+              - dc2c1
+        ulimits:
+            memlock: -1
+            nproc: 32768
+            nofile: 100000
+        command: bash -c 'sleep 10;  /docker-entrypoint.sh cassandra -f'
+
+    dc2c3:
+        container_name: dc2c3
+        build:
+          context: .
+          dockerfile: ./src/cassie-Dockerfile
+        hostname: dc2c3
+        networks: 
+            - myring
+        volumes:
+            - ./n6data:/var/lib/cassandra
+            - ./configuration/cassandra-env.sh:/etc/cassandra/cassandra-env.sh
+        ports:
+          - "127.0.0.1:7406:7400"
+        environment:
+            - CASSANDRA_SEEDS=dc2c1,dc2c2,dc1c2,dc1c3
+            - CASSANDRA_CLUSTER_NAME=Dev_Cluster
+            - CASSANDRA_ENDPOINT_SNITCH=GossipingPropertyFileSnitch
+            - CASSANDRA_DC=DC2
+            - CASSANDRA_RACK=RAC3
+        depends_on:
+              - dc2c1
+        ulimits:
+            memlock: -1
+            nproc: 32768
+            nofile: 100000
+        command: bash -c 'sleep 10;  /docker-entrypoint.sh cassandra -f'
+
+########################################################
+# network
+
+networks:
+    myring:    
+        driver: bridge
+        ipam:
+          driver: default
+          config:
+          - subnet: 172.16.238.0/24

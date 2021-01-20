@@ -1,0 +1,17 @@
+wget https://mirror.jframeworks.com/apache/maven/maven-3/3.6.3/binaries/apache-maven-3.6.3-bin.tar.gz
+
+tar -xf apache-maven-3.6.3-bin.tar.gz
+
+cp /tmp/.bash_profile ~/.bash_profile
+source ~/.bash_profile
+
+mvn archetype:generate -DgroupId=com.testexamples.app -DartifactId=HelloCass -DarchetypeArtifactId=maven-archetype-quickstart -DinteractiveMode=false
+
+cp /tmp/App.java /HelloCass/src/main/java/com/testexamples/app/App.java
+cp /tmp/pom.xml /HelloCass/pom.xml
+
+cd HelloCass
+
+mvn clean compile assembly:single
+
+java -cp target/HelloCass-1.0-SNAPSHOT-jar-with-dependencies.jar com.testexamples.app.App
